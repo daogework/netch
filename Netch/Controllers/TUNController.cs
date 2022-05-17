@@ -48,19 +48,20 @@ namespace Netch.Controllers
             CheckDriver();
 
             // Wait for adapter to be created
-            for (var i = 0; i < 20; i++)
-            {
-                await Task.Delay(300);
-                try
-                {
-                    _tun.InterfaceIndex = NetworkInterfaceUtils.Get(ni => ni.Name.StartsWith(interfaceName)).GetIndex();
-                    break;
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
+            //for (var i = 0; i < 1; i++)
+            //{
+            //    await Task.Delay(10);
+            //    try
+            //    {
+            //        Console.WriteLine("try "+(i+1));
+            //        _tun.InterfaceIndex = NetworkInterfaceUtils.Get(ni => ni.Name.StartsWith(interfaceName)).GetIndex();
+            //        break;
+            //    }
+            //    catch
+            //    {
+            //        // ignored
+            //    }
+            //}
 
             Dial(NameList.TYPE_ADAPMTU, "1500");
             Dial(NameList.TYPE_BYPBIND, _outbound.Gateway);
