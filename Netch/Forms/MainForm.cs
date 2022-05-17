@@ -570,7 +570,10 @@ public partial class MainForm : Form
                 if (Global.Settings.StartedPingInterval >= 0)
                 {
                     await server.PingAsync();
-                    ServerComboBox.Refresh();
+                    Invoke(() => {
+                        ServerComboBox.Refresh();
+                    });
+                    
 
                     await Task.Delay(Global.Settings.StartedPingInterval * 1000);
                 }
