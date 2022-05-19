@@ -30,9 +30,20 @@ public static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        // Add the event handler for handling UI thread exceptions to the event.
+        Application.ThreadException += Application_ThreadException;
+
+        // Set the unhandled exception mode to force all Windows Forms errors
+        // to go through our handler.
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+
+        // Add the event handler for handling non-UI thread exceptions to the event. 
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+
         // handle arguments
-        if (args.Contains(Constants.Parameter.ForceUpdate))
-            Flags.AlwaysShowNewVersionFound = true;
+        //if (args.Contains(Constants.Parameter.ForceUpdate))
+        //    Flags.AlwaysShowNewVersionFound = true;
 
         // set working directory
         Directory.SetCurrentDirectory(Global.NetchDir);
@@ -105,6 +116,16 @@ public static class Program
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         Application.Run(Global.MainForm);
+    }
+
+    private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        Console.WriteLine($"{e.ExceptionObject}\n", "UI发生致命异常");
+    }
+
+    private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+    {
+        Console.WriteLine($"{e.Exception}\n", "Thread发生致命异常");
     }
 
 #pragma warning restore VSTHRD002
