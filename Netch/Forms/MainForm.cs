@@ -1253,13 +1253,14 @@ public partial class MainForm : Form
                     _resumeFlag = false;
                     Log.Information("OS Resume, Restart");
                     _state = State.InternetTesting;
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 120; i++)
                     {
                         if (_state!= State.InternetTesting) break;
                         Log.Information($"CheckForInternetConnection... {i}");
                         bool b = false;
                         await Task.Run(() =>b = Utils.Utils.CheckForInternetConnection());
                         if (b) break;
+                        await Task.Delay(1000);
                     }
                     ControlButton.PerformClick();
                 }
