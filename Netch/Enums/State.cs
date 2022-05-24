@@ -33,7 +33,12 @@ public enum State
     /// <summary>
     ///     退出中
     /// </summary>
-    Terminating
+    Terminating,
+
+    /// <summary>
+    ///     检测连通性
+    /// </summary>
+    InternetTesting,
 }
 
 public static class StateExtension
