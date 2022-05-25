@@ -1251,6 +1251,7 @@ public partial class MainForm : Form
     }
 
     private bool _resumeFlag;
+    private bool _suspendAtRunningFlag;
 
     private async void SystemEvents_PowerModeChanged(object sender, PowerModeChangedEventArgs e)
     {
@@ -1260,6 +1261,7 @@ public partial class MainForm : Form
                 if (!IsWaiting())
                 {
                     _resumeFlag = true;
+                    _suspendAtRunningFlag = _state == State.Started;
                     Log.Information("OS Suspend, Stop");
                     await StopAsync();
                 }
@@ -1270,7 +1272,7 @@ public partial class MainForm : Form
                 {
                     _resumeFlag = false;
                     Log.Information("OS Resume, Restart");
-                    if(_state== State.Started)
+                    if(_suspendAtRunningFlag)
                     {
                         var laststate = _state;
                         _state = State.InternetTesting;
@@ -1279,16 +1281,15 @@ public partial class MainForm : Form
                         {
                             if (_state != State.InternetTesting) break;
                             await Task.Run(() => b = Utils.Utils.CheckForInternetConnection()).ConfigureAwait(true);
-                            if (b) break;
+                            if (b) {
+                                _state = laststate;
+                                ControlButton_Click(null, null);
+                                break; 
+                            }
                             await Task.Delay(1000).ConfigureAwait(true);
                         }
-                        
-                        if (b)
-                        {
-                            _state = laststate;
-                            ControlButton.PerformClick();
-                        }
-                        else if(_state == State.InternetTesting)
+
+                        if (_state == State.InternetTesting)
                         {
                             Console.WriteLine("没有网络");
                         }
