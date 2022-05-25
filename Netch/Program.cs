@@ -120,12 +120,12 @@ public static class Program
 
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-        Console.WriteLine($"{e.ExceptionObject}\n", "UI发生致命异常");
+        Console.WriteLine($"{e.ExceptionObject}\n", "UI发生异常");
     }
 
     private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
     {
-        Console.WriteLine($"{e.Exception}\n", "Thread发生致命异常");
+        Console.WriteLine($"{e.Exception}\n", "Thread发生异常");
     }
 
 #pragma warning restore VSTHRD002

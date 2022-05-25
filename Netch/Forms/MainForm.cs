@@ -45,6 +45,15 @@ public partial class MainForm : Form
 
         // 监听电源事件
         SystemEvents.PowerModeChanged += SystemEvents_PowerModeChanged;
+        InterceptKeys.GlobalKeyDown += InterceptKeys_GlobalKeyDown;
+
+        InterceptKeys.Init();
+        FormClosed += MainForm_FormClosed;
+    }
+
+    private void MainForm_FormClosed(object? sender, FormClosedEventArgs e)
+    {
+        InterceptKeys.DeInit();
     }
 
     private void AddAddServerToolStripMenuItems()
@@ -569,17 +578,15 @@ public partial class MainForm : Form
             {
                 if (Global.Settings.StartedPingInterval >= 0)
                 {
-                    await server.PingAsync();
-                    Invoke(() => {
-                        ServerComboBox.Refresh();
-                    });
-                    
+                    await server.PingAsync().ConfigureAwait(true);//保证回到主线程
+                    ServerComboBox.Refresh();
 
-                    await Task.Delay(Global.Settings.StartedPingInterval * 1000);
+
+                    await Task.Delay(Global.Settings.StartedPingInterval * 1000).ConfigureAwait(true);//保证回到主线程
                 }
                 else
                 {
-                    await Task.Delay(5000);
+                    await Task.Delay(5000).ConfigureAwait(true);//保证回到主线程
                 }
             }
         }
@@ -1232,6 +1239,17 @@ public partial class MainForm : Form
 
     #region PowerEvent
 
+    private void InterceptKeys_GlobalKeyDown(Keys obj)
+    {
+        if (obj == Keys.Escape)
+        {
+#if DEBUG
+            //Console.WriteLine("test ControlButton.PerformClick();");
+            //ControlButton.PerformClick();
+#endif
+        }
+    }
+
     private bool _resumeFlag;
 
     private async void SystemEvents_PowerModeChanged(object sender, PowerModeChangedEventArgs e)
@@ -1252,17 +1270,30 @@ public partial class MainForm : Form
                 {
                     _resumeFlag = false;
                     Log.Information("OS Resume, Restart");
-                    _state = State.InternetTesting;
-                    for (int i = 0; i < 120; i++)
+                    if(_state== State.Started)
                     {
-                        if (_state!= State.InternetTesting) break;
-                        Log.Information($"CheckForInternetConnection... {i}");
+                        var laststate = _state;
+                        _state = State.InternetTesting;
                         bool b = false;
-                        await Task.Run(() =>b = Utils.Utils.CheckForInternetConnection());
-                        if (b) break;
-                        await Task.Delay(1000);
+                        for (int i = 0; i < 600; i++)
+                        {
+                            if (_state != State.InternetTesting) break;
+                            await Task.Run(() => b = Utils.Utils.CheckForInternetConnection()).ConfigureAwait(true);
+                            if (b) break;
+                            await Task.Delay(1000).ConfigureAwait(true);
+                        }
+                        
+                        if (b)
+                        {
+                            _state = laststate;
+                            ControlButton.PerformClick();
+                        }
+                        else if(_state == State.InternetTesting)
+                        {
+                            Console.WriteLine("没有网络");
+                        }
                     }
-                    ControlButton.PerformClick();
+                    
                 }
 
                 break;
